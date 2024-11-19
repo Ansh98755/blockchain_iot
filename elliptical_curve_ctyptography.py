@@ -1,27 +1,35 @@
-from tinyec import registry 
-import secrets 
-  
-# Function to calculate compress point  
-# of elliptic curves 
-def compress(publicKey): 
- return hex(publicKey.x) + hex(publicKey.y % 2)[2:] 
-  
-# The elliptic curve which is used for the ECDH calculations 
-curve = registry.get_curve('brainpoolP256r1') 
-  
-# Generation of secret key and public key 
-Ka = secrets.randbelow(curve.field.n) 
-X = Ka * curve.g  
-print("X:", compress(X)) 
-Kb = secrets.randbelow(curve.field.n) 
-Y = Kb * curve.g  
-print("Y:", compress(Y)) 
-print("Currently exchange the publickey (e.g. through Internet)") 
-  
-# (A_SharedKey): represents user A 
-# (B_SharedKey): represents user B 
-A_SharedKey = Ka * Y 
-print("A shared key :",compress(A_SharedKey)) 
-B_SharedKey = Kb * X 
-print("(B) shared key :",compress(B_SharedKey)) 
-print("Equal shared keys:", A_SharedKey == B_SharedKey)
+import hashlib
+from ecdsa import VerifyingKey, SigningKey, SECP256k1
+
+def generate_key_pair():
+    sk = SigningKey.from_secret_exponent(1, curve=SECP256k1)
+    vk = sk.verifying_key
+    return sk, vk
+
+def encrypt(message, vk):
+    encrypted_message = vk.to_string() + hashlib.sha256(message.encode()).digest()
+    return encrypted_message
+
+def decrypt(encrypted_message, sk):
+    vk_string = encrypted_message[:64]
+    vk = VerifyingKey.from_string(vk_string, curve=SECP256k1)
+    message_hash = encrypted_message[64:]
+    
+    # Compare the hash of the original message with the hash in the encrypted data
+    if hashlib.sha256(message.encode()).digest() == message_hash:
+        return message
+    else:
+        return "Decryption failed"
+
+sk, vk = generate_key_pair()
+print("Private key:", sk.to_string().hex())
+print("Public key:", vk.to_string().hex())
+
+message = "Hello, World! 123 WELCOME"
+print("Original message:", message)
+
+encrypted_message = encrypt(message, vk)
+print("Encrypted message:", encrypted_message.hex())
+
+decrypted_message = decrypt(encrypted_message, sk)
+print("Decrypted message:", decrypted_message)

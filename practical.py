@@ -118,47 +118,85 @@
 #     )
 # )
 # print(f'The decrypted form of the encrypted message = {decrypted_message.decode('utf-8')}')
+# perform encryption and decryption using AES
+# import datetime
+# import json
+# import random
+# import time 
+# from cryptography.fernet import Fernet
+# def collect_data():
+#     temprature=round(random.uniform(-30,50),2)
+#     humidity=round(random.uniform(1,100),2)
+#     timestamp=datetime.datetime.now().isoformat()
+#     data_return={
+#         "temprature": temprature,
+#         "humidity": humidity,
+#         "timestamp": timestamp
+#     }
+#     return data_return 
+# data=[]
+# interval=2
+# num_samples=10
+
+# for _ in range(num_samples):
+#     sample=collect_data()
+#     data.append(sample)
+#     print(f'Collected Samples : {sample}')
+#     time.sleep(interval)
+# with open('Sensor_data.json', 'w') as file:
+#     json.dump('Sensor_data.json',file, indent=4)
+# print('Data collection completed')
+# key=Fernet.generate_key()
+# with open('filekey.key' ,'wb') as filekey:
+#     filekey.write(key)
+# print(f'Encryption key = {key}')
+# with open('filekey.key' , 'rb') as filekey:
+#     key=filekey.read()
+# fernet=Fernet(key)
+# with open('Sensor_data.json' , 'rb') as file:
+#     original=file.read()
+# encrypted=fernet.encrypt(original)
+# with open('Sensor_data.json','wb') as file:
+#     file.write(encrypted)
+# with open('Sensor_data.json', 'rb') as enc_file:
+#     encry=enc_file.read()
+# decrypted=fernet.decrypt(encry)
+# with open('Sensor_data.json','wb') as dec_file:
+#     dec_file.write(decrypted)
+
+#ecc (Elleptic Curve)
+import hashlib
+from ecdsa import verifyingKey,SigningKey,SECP256k1
+def generate_key_pair():
+    sk=SigningKey.from_secret_exponent(1,curve=SECP256k1)
+    vk=verifyingKey
+    return vk,sk
+def encrypt(message,vk):
+    encrypted_message=vk.to_string()+hashlib.sha256(message.encode()).digest()
+    return encrypted_message
+def decrypt(encrypted_message,sk):
+    vk_string=encrypted_message[:64]
+    vk=verifyingKey.from_string(vk_string,curve=SECP256k1)
+    message_hash=encrypted_message[64:]
+    if hashlib.sha256(message.encode()).digest()==message_hash:
+        return message_hash
+    else:
+        return 'Decryption Failed'
+sk,vk=generate_key_pair()
+print('Private key = ' ,sk.to_string().hex() )
+print('Public key = ', vk.to_string().hex())
+
+message='Hi,there this is ayush'
+encrypted_message=encrypt(message,vk)
+print(f'Encrypted Message = {encrypted_message.hex()}')
+decrypted_message=decrypt(encrypted_message,sk)
+print(f'Decrypted Message = {decrypted_message}')
+
+
 import datetime
-import json
+import json 
 import random
-import time 
+import time
 from cryptography.fernet import Fernet
 def collect_data():
-    temprature=round(random.uniform(-30,50),2)
-    humidity=round(random.uniform(1,100),2)
-    timestamp=datetime.datetime.now().isoformat()
-    data_return={
-        "temprature": temprature,
-        "humidity": humidity,
-        "timestamp": timestamp
-    }
-    return data_return 
-data=[]
-interval=2
-num_samples=10
-
-for _ in range(num_samples):
-    sample=collect_data()
-    data.append(sample)
-    print(f'Collected Samples : {sample}')
-    time.sleep(interval)
-with open('Sensor_data.json', 'w') as file:
-    json.dump('Sensor_data.json',file, indent=4)
-print('Data collection completed')
-key=Fernet.generate_key()
-with open('filekey.key' ,'wb') as filekey:
-    filekey.write(key)
-print(f'Encryption key = {key}')
-with open('filekey.key' , 'rb') as filekey:
-    key=filekey.read()
-fernet=Fernet(key)
-with open('Sensor_data.json' , 'rb') as file:
-    original=file.read()
-encrypted=fernet.encrypt(original)
-with open('Sensor_data.json','wb') as file:
-    file.write(encrypted)
-with open('Sensor_data.json', 'rb') as enc_file:
-    encry=enc_file.read()
-decrypted=fernet.decrypt(encry)
-with open('Sensor_data.json','wb') as dec_file:
-    dec_file.write(decrypted)
+    tmeprature=
